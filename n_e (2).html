@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N.E. Resellz</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{--bg:#05070d;--card:#0d111b;--text:#e6faff;--accent:#00f7ff;--accent2:#ff00ff}
+body{margin:0;font-family:'Poppins';background:linear-gradient(180deg,#05070d,#0b0f1c);color:var(--text)}
+header{display:flex;justify-content:space-between;padding:20px;border-bottom:1px solid rgba(0,255,255,0.2)}
+h1{font-family:'Orbitron';color:var(--accent);text-shadow:0 0 12px var(--accent)}
+
+.controls{display:flex;gap:10px;padding:10px;flex-wrap:wrap}
+select,input{padding:8px;border-radius:8px;border:none}
+
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;padding:20px}
+.card{background:var(--card);border-radius:15px;padding:15px;text-align:center;transition:.3s;border:1px solid rgba(0,255,255,0.2)}
+.card:hover{transform:translateY(-5px) scale(1.03);box-shadow:0 0 25px var(--accent)}
+.card img{width:100%;height:120px;object-fit:contain}
+
+.badge{font-size:0.7rem;color:#000;background:var(--accent);padding:2px 6px;border-radius:6px;margin:3px;display:inline-block}
+
+.cart{position:fixed;right:-300px;top:0;width:260px;height:100%;background:#0d111b;border-left:1px solid rgba(0,255,255,0.2);padding:15px;overflow:auto;transition:.4s}
+.cart.open{right:0}
+
+.review{font-size:0.8rem;color:#aaa}
+</style>
+</head>
+<body>
+
+<header>
+<h1>N.E. Resellz</h1>
+<button onclick="toggleCart()">Cart</button>
+</header>
+
+<div class="controls">
+<input id="search" placeholder="Search..." oninput="renderProducts()">
+<select id="category" onchange="renderProducts()">
+<option value="all">All</option>
+<option value="chips">Chips</option>
+<option value="candy">Candy</option>
+<option value="drinks">Drinks</option>
+</select>
+<select id="sort" onchange="renderProducts()">
+<option value="default">Sort</option>
+<option value="price">Price</option>
+<option value="popularity">Popularity</option>
+</select>
+</div>
+
+<div class="products" id="products"></div>
+
+<div class="cart" id="cart">
+<h3>Cart</h3>
+<div id="cartItems"></div>
+<p>Total: $<span id="total">0</span></p>
+</div>
+
+<script>
+const products=[
+{name:"Doritos",price:4.99,cat:"chips",pop:5,img:"https://images.unsplash.com/photo-1625944525903-5c0cfa5c0c2d"},
+{name:"Lays",price:3.99,cat:"chips",pop:4,img:"https://images.unsplash.com/photo-1585238342028-4b2a3c0dff78"},
+{name:"Cheetos",price:4.49,cat:"chips",pop:4,img:"https://images.unsplash.com/photo-1615486366533-8a2c81394b1e"},
+{name:"Pringles",price:4.99,cat:"chips",pop:5,img:"https://images.unsplash.com/photo-1625944515001-4c08c8fba9b5"},
+{name:"Takis",price:5.49,cat:"chips",pop:5,img:"https://images.unsplash.com/photo-1621939514649-280e2ee25f60"},
+
+{name:"Skittles",price:2.99,cat:"candy",pop:5,img:"https://images.unsplash.com/photo-1589927986089-35812388d1c8"},
+{name:"M&Ms",price:2.99,cat:"candy",pop:5,img:"https://images.unsplash.com/photo-1606312619070-d48b4c652a52"},
+{name:"Airheads",price:1.99,cat:"candy",pop:3,img:"https://images.unsplash.com/photo-1612197526270-3f9e5a8d28d7"},
+{name:"Sour Patch",price:3.49,cat:"candy",pop:4,img:"https://images.unsplash.com/photo-1587049352851-8d4e89133924"},
+
+{name:"Coca-Cola",price:2.49,cat:"drinks",pop:5,img:"https://images.unsplash.com/photo-1580910051074-3eb694886505"},
+{name:"Pepsi",price:2.49,cat:"drinks",pop:4,img:"https://images.unsplash.com/photo-1604908554020-42bde5df3cbb"},
+{name:"Monster",price:3.99,cat:"drinks",pop:5,img:"https://images.unsplash.com/photo-1622480916113-c9f52b9c7c45"},
+{name:"Red Bull",price:3.99,cat:"drinks",pop:5,img:"https://images.unsplash.com/photo-1603398938378-e54eab446dde"}
+];
+
+let cart=[];
+
+function renderProducts(){
+let search=document.getElementById('search').value.toLowerCase();
+let cat=document.getElementById('category').value;
+let sort=document.getElementById('sort').value;
+
+let list=products.filter(p=>p.name.toLowerCase().includes(search));
+if(cat!="all") list=list.filter(p=>p.cat===cat);
+
+if(sort==="price") list.sort((a,b)=>a.price-b.price);
+if(sort==="popularity") list.sort((a,b)=>b.pop-a.pop);
+
+let container=document.getElementById('products');
+container.innerHTML="";
+
+list.forEach(p=>{
+container.innerHTML+=`<div class='card'>
+<img src='${p.img}?auto=format&fit=crop&w=300&q=80'>
+<h4>${p.name}</h4>
+<span class='badge'>${p.cat}</span>
+<span class='badge'>⭐ ${p.pop}</span>
+<p>$${p.price}</p>
+<div class='review'>"Top seller!"</div>
+<button onclick="addToCart('${p.name}')">Add</button>
+</div>`;
+});
+}
+
+function addToCart(name){
+let p=products.find(x=>x.name===name);
+cart.push(p);
+updateCart();
+}
+
+function updateCart(){
+let total=0;
+let el=document.getElementById('cartItems');
+el.innerHTML="";
+cart.forEach((item,i)=>{
+total+=item.price;
+el.innerHTML+=`<div>${item.name} $${item.price} <button onclick="removeItem(${i})">X</button></div>`;
+});
+document.getElementById('total').innerText=total.toFixed(2);
+}
+
+function removeItem(i){cart.splice(i,1);updateCart();}
+
+function toggleCart(){document.getElementById('cart').classList.toggle('open');}
+
+renderProducts();
+</script>
+
+</body>
+</html>
